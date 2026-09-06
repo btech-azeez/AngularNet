@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: restore-probe
+        run: |
+          set -e
+          mkdir -p /tmp/p/api /tmp/p/test
+          cat > /tmp/p/api/api.csproj <<'EOF'
+          <Project Sdk="Microsoft.NET.Sdk.Web">
+            <PropertyGroup>
+              <TargetFramework>net10.0</TargetFramework>
+              <Nullable>enable</Nullable>
+              <ImplicitUsings>enable</ImplicitUsings>
+            </PropertyGroup>
+            <ItemGroup>
+              <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.*" />
+              <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.*" />
+              <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*" />
+              <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.*" />
+              <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+              <PackageReference Include="Scalar.AspNetCore" Version="2.*" />
+            </ItemGroup>
+          </Project>
+          EOF
+          cat > /tmp/p/test/test.csproj <<'EOF'
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+              <TargetFramework>net10.0</TargetFramework>
+              <Nullable>enable</Nullable>
+              <ImplicitUsings>enable</ImplicitUsings>
+              <IsPackable>false</IsPackable>
+            </PropertyGroup>
+            <ItemGroup>
+              <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.*" />
+              <PackageReference Include="xunit" Version="2.*" />
+              <PackageReference Include="xunit.runner.visualstudio" Version="3.*" />
+              <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.*" />
+            </ItemGroup>
+          </Project>
+          EOF
+          dotnet restore /tmp/p/api/api.csproj -r linux-x64 >/dev/null
+          dotnet restore /tmp/p/api/api.csproj >/dev/null
+          dotnet restore /tmp/p/test/test.csproj >/dev/null
+          V=$( (dotnet list /tmp/p/api/api.csproj package; dotnet list /tmp/p/test/test.csproj package) | grep '>' | awk '{print $2"="$4}' | sort -u | tr '\n' ' ')
+          echo "::notice title=resolved::$V"
+          du -sh ~/.nuget/packages | cut -f1 > /tmp/pkgsize
+          echo "::notice title=pkgsize::$(cat /tmp/pkgsize)"
+      - name: pack
+        run: |
+          set -e
+          cd /tmp
+          curl -sSL https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.400/dotnet-sdk-10.0.400-linux-x64.tar.gz -o sdk.tar.gz || curl -sSL https://dotnetcli.azureedge.net/dotnet/Sdk/10.0.400/dotnet-sdk-10.0.400-linux-x64.tar.gz -o sdk.tar.gz
+          tar -C ~/.nuget -czf nuget.tar.gz packages
+          ls -la sdk.tar.gz nuget.tar.gz
+          sha256sum sdk.tar.gz nuget.tar.gz > sums.txt
+          split -b 48m -d sdk.tar.gz sdk.part.
+          split -b 48m -d nuget.tar.gz nuget.part.
+          ls -la sdk.part.* nuget.part.*
+      - name: upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd /tmp
+          cat > up.py <<'EOF'
+          import base64, json, sys, urllib.request, os, time
+          repo = os.environ["REPO"]; tok = os.environ["GH_TOKEN"]
+          out = []
+          for f in sys.argv[1:]:
+              data = open(f, "rb").read()
+              body = json.dumps({"content": base64.b64encode(data).decode(), "encoding": "base64"}).encode()
+              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/git/blobs", data=body, method="POST",
+                    headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json", "Content-Type": "application/json"})
+              t = time.time()
+              try:
+                  with urllib.request.urlopen(req, timeout=600) as r:
+                      sha = json.load(r)["sha"]
+                  out.append(f"{f}:{len(data)}:{sha}:{time.time()-t:.0f}s")
+              except Exception as e:
+                  msg = getattr(e, "read", lambda: b"")()[:200]
+                  out.append(f"{f}:ERR:{e}:{msg}")
+              print(out[-1], flush=True)
+          print("::notice title=blobs::" + " ".join(out))
+          EOF
+          python3 up.py sdk.part.* nuget.part.*
+          echo "::notice title=sums::$(cat sums.txt | tr '\n' ' ')"
