@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (.NET 10)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore GramPanchayat.sln
+
+      - name: Build
+        run: dotnet build GramPanchayat.sln --configuration Release --no-restore -warnaserror:nullable
+
+      - name: Test
+        run: >
+          dotnet test GramPanchayat.sln --configuration Release --no-build
+          --logger "trx;LogFileName=results.trx" --logger "console;verbosity=normal"
+          --results-directory TestResults
+
+      - name: Summarise test results
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY' 2> >(tee /dev/stderr) >> "$GITHUB_STEP_SUMMARY"
+          import glob, xml.etree.ElementTree as ET
+          ns = {"t": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
+          total = passed = failed = 0
+          rows = []
+          for f in glob.glob("TestResults/**/*.trx", recursive=True):
+              root = ET.parse(f).getroot()
+              c = root.find("t:ResultSummary/t:Counters", ns)
+              if c is not None:
+                  total += int(c.get("total", 0)); passed += int(c.get("passed", 0)); failed += int(c.get("failed", 0))
+              for r in root.findall("t:Results/t:UnitTestResult", ns):
+                  if r.get("outcome") != "Passed":
+                      msg = r.find("t:Output/t:ErrorInfo/t:Message", ns)
+                      rows.append(f"- ❌ `{r.get('testName')}` — {(msg.text or '').strip()[:300] if msg is not None else ''}")
+          print(f"### Backend tests: {passed}/{total} passed" + (f", **{failed} failed**" if failed else " ✅"))
+          print("\n".join(rows))
+          # Also surface failures as workflow annotations (visible in the Checks API).
+          import sys
+          def esc(s): return s.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          sys.stderr.write(f"::notice title=backend-tests::{passed}/{total} passed, {failed} failed\n")
+          for f in glob.glob("TestResults/**/*.trx", recursive=True):
+              root = ET.parse(f).getroot()
+              for r in root.findall("t:Results/t:UnitTestResult", ns):
+                  if r.get("outcome") != "Passed":
+                      msg = r.find("t:Output/t:ErrorInfo/t:Message", ns)
+                      st = r.find("t:Output/t:ErrorInfo/t:StackTrace", ns)
+                      text = ((msg.text or "") if msg is not None else "") + "\n" + ((st.text or "")[:1200] if st is not None else "")
+                      sys.stderr.write(f"::error title={r.get('testName')[:120]}::{esc(text[:3800])}\n")
+          PY
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/TestResults
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (Angular 22)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Format check
+        run: npm run lint
+
+      - name: Build (production)
+        run: npm run build -- --configuration production
+
+      - name: Unit tests
+        run: npm test -- --watch=false
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/frontend/browser

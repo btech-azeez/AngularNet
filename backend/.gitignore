@@ -1,0 +1,11 @@
+## .NET build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.db
+*.db-shm
+*.db-wal
+appsettings.*.local.json
