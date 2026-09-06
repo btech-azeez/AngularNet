@@ -52,8 +52,8 @@ public static class PublicEndpoints
             .WithSummary("Accepted candidates (public) or every nomination (officers).");
 
         candidates.MapGet("/{candidateId:int}", async (
-                int electionId, int candidateId, ClaimsPrincipal user, NominationService svc, CancellationToken ct) =>
-                await svc.GetAsync(electionId, candidateId, IsOfficer(user), ct))
+                int electionId, int candidateId, NominationService svc, CancellationToken ct) =>
+                await svc.GetAsync(electionId, candidateId, ct))
             .WithName("GetCandidate");
 
         candidates.MapPost("/", async Task<Results<Created<CandidateDto>, ValidationProblem>> (

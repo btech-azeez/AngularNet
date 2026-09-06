@@ -37,11 +37,11 @@ public static class AdminEndpoints
                 int electionId,
                 [FromQuery] int? wardId,
                 [FromQuery] string? search,
-                [FromQuery] int page,
-                [FromQuery] int pageSize,
+                [FromQuery] int? page,
+                [FromQuery] int? pageSize,
                 VoterRollService svc,
                 CancellationToken ct) =>
-                await svc.ListAsync(electionId, wardId, search, page == 0 ? 1 : page, pageSize == 0 ? 25 : pageSize, ct))
+                await svc.ListAsync(electionId, wardId, search, page ?? 1, pageSize ?? 25, ct))
             .WithName("ListVoters");
 
         g.MapPost("/elections/{electionId:int}/voters", async Task<Created<VoterDto>> (

@@ -23,16 +23,11 @@ public sealed class NominationService(ElectionDbContext db, TimeProvider clock)
         return list.Select(c => c.ToDto()).ToList();
     }
 
-    public async Task<CandidateDto> GetAsync(int electionId, int candidateId, bool includeAll, CancellationToken ct)
+    public async Task<CandidateDto> GetAsync(int electionId, int candidateId, CancellationToken ct)
     {
         var c = await db.Candidates.AsNoTracking().Include(x => x.Ward)
                     .FirstOrDefaultAsync(x => x.ElectionId == electionId && x.Id == candidateId, ct)
                 ?? throw DomainException.NotFound("Candidate");
-
-        // Hide pending/rejected nominations from the public, but let anyone follow the link they got after filing.
-        if (!includeAll && c.Status == NominationStatus.Rejected && string.IsNullOrEmpty(c.RejectionReason))
-            throw DomainException.NotFound("Candidate");
-
         return c.ToDto();
     }
 

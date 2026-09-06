@@ -56,7 +56,7 @@ public sealed class ElectionDbContext(DbContextOptions<ElectionDbContext> option
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
             // A symbol may only be used once per election (ignoring rejected/withdrawn is enforced in code).
             e.HasIndex(x => new { x.ElectionId, x.Symbol });
-            e.HasIndex(x => new { x.ElectionId, x.SerialNumber }).IsUnique().HasFilter(null);
+            e.HasIndex(x => new { x.ElectionId, x.SerialNumber }).IsUnique();
             e.HasOne(x => x.Election).WithMany(el => el.Candidates).HasForeignKey(x => x.ElectionId)
                 .OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Ward).WithMany().HasForeignKey(x => x.WardId).OnDelete(DeleteBehavior.NoAction);

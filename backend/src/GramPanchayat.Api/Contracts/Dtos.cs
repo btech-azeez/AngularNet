@@ -148,13 +148,13 @@ public sealed record NominationRequest(
     [Required, MinLength(30), MaxLength(2000)] string Manifesto);
 
 public sealed record ReviewNominationRequest(
-    [Required] NominationStatus Decision,
+    NominationStatus Decision,
     [MaxLength(500)] string? Reason);
 
 public sealed record CastVoteRequest(
     [Range(0, int.MaxValue, ErrorMessage = "candidateId must be 0 (NOTA) or a valid candidate id.")] int CandidateId);
 
-public sealed record ChangePhaseRequest([Required] ElectionPhase Phase);
+public sealed record ChangePhaseRequest(ElectionPhase Phase);
 
 public sealed record CreateVoterRequest(
     [Required, MinLength(3), MaxLength(120)] string FullName,

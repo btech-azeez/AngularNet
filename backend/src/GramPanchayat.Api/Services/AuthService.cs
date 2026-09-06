@@ -14,6 +14,8 @@ namespace GramPanchayat.Api.Services;
 
 public static class AppClaims
 {
+    public const string Name = "name";
+    public const string Role = "role";
     public const string VoterId = "voter_id";
     public const string ElectionId = "election_id";
 }
@@ -93,8 +95,8 @@ public sealed class AuthService(
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, $"voter:{voter.Id}"),
-            new(ClaimTypes.Name, voter.FullName),
-            new(ClaimTypes.Role, nameof(UserRole.Voter)),
+            new(AppClaims.Name, voter.FullName),
+            new(AppClaims.Role, nameof(UserRole.Voter)),
             new(AppClaims.VoterId, voter.Id.ToString()),
             new(AppClaims.ElectionId, electionId.ToString()),
         };
@@ -120,8 +122,8 @@ public sealed class AuthService(
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, $"user:{user.Id}"),
-            new(ClaimTypes.Name, user.DisplayName),
-            new(ClaimTypes.Role, user.Role.ToString()),
+            new(AppClaims.Name, user.DisplayName),
+            new(AppClaims.Role, user.Role.ToString()),
         };
         return Issue(claims, TimeSpan.FromMinutes(jwt.Value.AdminTokenMinutes), dto);
     }

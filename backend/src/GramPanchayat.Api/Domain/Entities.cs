@@ -1,6 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace GramPanchayat.Api.Domain;
 
 /// <summary>Lifecycle of a Gram Panchayat election. Phases only move forward.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ElectionPhase>))]
 public enum ElectionPhase
 {
     Scheduled = 0,
@@ -11,6 +14,7 @@ public enum ElectionPhase
     Declared = 5,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<NominationStatus>))]
 public enum NominationStatus
 {
     Pending = 0,
@@ -19,6 +23,7 @@ public enum NominationStatus
     Withdrawn = 3,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<UserRole>))]
 public enum UserRole
 {
     Admin = 0,
