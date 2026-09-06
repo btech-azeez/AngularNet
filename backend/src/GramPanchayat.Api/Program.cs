@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using GramPanchayat.Api;
 using GramPanchayat.Api.Data;
 using GramPanchayat.Api.Domain;
 using GramPanchayat.Api.Endpoints;
@@ -57,6 +58,8 @@ builder.Services.Configure<JsonOptions>(o =>
     o.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 builder.Services.AddProblemDetails();
+// .NET 10 built-in DataAnnotations validation for minimal APIs (source-generated; DTOs must be public).
+builder.Services.AddValidation();
 builder.Services.AddOpenApi(o => o.AddDocumentTransformer((doc, _, _) =>
 {
     doc.Info.Title = "Gram Panchayat Sarpanch Election API";
