@@ -120,7 +120,9 @@ import { PhaseStepper } from '../../shared/phase-stepper';
               </tr>
               <tr>
                 <td>Counting & declaration</td>
-                <td class="num">{{ d.election.pollingDate | date: 'd MMM y' }} (after polls close)</td>
+                <td class="num">
+                  {{ d.election.pollingDate | date: 'd MMM y' }} (after polls close)
+                </td>
               </tr>
             </tbody>
           </table>
@@ -152,11 +154,22 @@ import { PhaseStepper } from '../../shared/phase-stepper';
       <section class="card how">
         <h3>How it works</h3>
         <ol>
-          <li><strong>Nomination</strong> — aspirants file their nomination with ward, symbol and manifesto.</li>
-          <li><strong>Scrutiny</strong> — the Returning Officer accepts or rejects each nomination and allots serial numbers.</li>
-          <li><strong>Polling</strong> — voters sign in with their EPIC (voter ID) number and an OTP, then cast exactly one secret ballot (NOTA available).</li>
+          <li>
+            <strong>Nomination</strong> — aspirants file their nomination with ward, symbol and
+            manifesto.
+          </li>
+          <li>
+            <strong>Scrutiny</strong> — the Returning Officer accepts or rejects each nomination and
+            allots serial numbers.
+          </li>
+          <li>
+            <strong>Polling</strong> — voters sign in with their EPIC (voter ID) number and an OTP,
+            then cast exactly one secret ballot (NOTA available).
+          </li>
           <li><strong>Counting</strong> — ward-wise tallies are published live.</li>
-          <li><strong>Declared</strong> — the candidate with the most votes is declared Sarpanch.</li>
+          <li>
+            <strong>Declared</strong> — the candidate with the most votes is declared Sarpanch.
+          </li>
         </ol>
       </section>
     }

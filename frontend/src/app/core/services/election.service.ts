@@ -49,11 +49,15 @@ export class ElectionService {
   getCandidates(electionId: number, status?: string): Observable<Candidate[]> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
-    return this.http.get<Candidate[]>(`${this.base}/elections/${electionId}/candidates`, { params });
+    return this.http.get<Candidate[]>(`${this.base}/elections/${electionId}/candidates`, {
+      params,
+    });
   }
 
   getCandidate(electionId: number, candidateId: number): Observable<Candidate> {
-    return this.http.get<Candidate>(`${this.base}/elections/${electionId}/candidates/${candidateId}`);
+    return this.http.get<Candidate>(
+      `${this.base}/elections/${electionId}/candidates/${candidateId}`,
+    );
   }
 
   fileNomination(electionId: number, req: NominationRequest): Observable<Candidate> {
@@ -102,10 +106,15 @@ export class ElectionService {
   }
 
   advancePhase(electionId: number, to: ElectionPhase): Observable<Election> {
-    return this.http.post<Election>(`${this.base}/admin/elections/${electionId}/phase`, { phase: to });
+    return this.http.post<Election>(`${this.base}/admin/elections/${electionId}/phase`, {
+      phase: to,
+    });
   }
 
-  getVoters(electionId: number, opts: { wardId?: number; search?: string; page?: number; pageSize?: number } = {}) {
+  getVoters(
+    electionId: number,
+    opts: { wardId?: number; search?: string; page?: number; pageSize?: number } = {},
+  ) {
     let params = new HttpParams();
     if (opts.wardId) params = params.set('wardId', opts.wardId);
     if (opts.search) params = params.set('search', opts.search);

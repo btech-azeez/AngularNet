@@ -19,7 +19,8 @@ type Filter = 'All' | NominationStatus;
         <h1>Candidates</h1>
         @if (data.value(); as d) {
           <p class="muted">
-            {{ d.election.title }} · Phase: <span class="badge" [class]="'badge ' + d.election.phase">{{ d.election.phase }}</span>
+            {{ d.election.title }} · Phase:
+            <span class="badge" [class]="'badge ' + d.election.phase">{{ d.election.phase }}</span>
           </p>
         }
       </div>
@@ -40,7 +41,12 @@ type Filter = 'All' | NominationStatus;
       @if (auth.isAdmin()) {
         <div class="filters row">
           @for (f of filters; track f) {
-            <button type="button" class="btn sm" [class.primary]="filter() === f" (click)="filter.set(f)">
+            <button
+              type="button"
+              class="btn sm"
+              [class.primary]="filter() === f"
+              (click)="filter.set(f)"
+            >
               {{ f }}
               <span class="count">{{ countFor(f) }}</span>
             </button>
@@ -52,13 +58,18 @@ type Filter = 'All' | NominationStatus;
         <div class="card empty">
           <p>No candidates to show yet.</p>
           @if (d.election.phase === 'Nomination') {
-            <a routerLink="/candidates/nominate" class="btn primary">Be the first to file a nomination</a>
+            <a routerLink="/candidates/nominate" class="btn primary"
+              >Be the first to file a nomination</a
+            >
           }
         </div>
       } @else {
         <div class="grid cols-3">
           @for (c of visible(); track c.id) {
-            <app-candidate-card [candidate]="c" [showStatus]="auth.isAdmin() || c.status !== 'Accepted'" />
+            <app-candidate-card
+              [candidate]="c"
+              [showStatus]="auth.isAdmin() || c.status !== 'Accepted'"
+            />
           }
         </div>
       }

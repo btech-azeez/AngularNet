@@ -3,110 +3,98 @@ name: CI
 on:
   push:
     branches: ["**"]
+  pull_request:
   workflow_dispatch:
 
-permissions:
-  contents: write
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  bundle:
+  backend:
+    name: Backend (.NET 10)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: restore
+
+      - name: Restore
+        run: dotnet restore GramPanchayat.sln
+
+      - name: Build
+        run: dotnet build GramPanchayat.sln --configuration Release --no-restore -warnaserror:nullable
+
+      - name: Test
+        run: >
+          dotnet test GramPanchayat.sln --configuration Release --no-build
+          --logger "trx;LogFileName=results.trx" --logger "console;verbosity=normal"
+          --results-directory TestResults
+
+      - name: Summarise test results
+        if: always()
+        shell: bash
         run: |
-          set -e
-          mkdir -p /tmp/p/api /tmp/p/test
-          cat > /tmp/p/api/api.csproj <<'EOF'
-          <Project Sdk="Microsoft.NET.Sdk.Web">
-            <PropertyGroup>
-              <TargetFramework>net10.0</TargetFramework>
-              <Nullable>enable</Nullable>
-              <ImplicitUsings>enable</ImplicitUsings>
-            </PropertyGroup>
-            <ItemGroup>
-              <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
-              <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
-              <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
-                <PrivateAssets>all</PrivateAssets>
-                <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-              </PackageReference>
-              <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
-              <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
-              <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.11" />
-              <PackageReference Include="Scalar.AspNetCore" Version="2.17.2" />
-            </ItemGroup>
-          </Project>
-          EOF
-          cat > /tmp/p/test/test.csproj <<'EOF'
-          <Project Sdk="Microsoft.NET.Sdk">
-            <PropertyGroup>
-              <TargetFramework>net10.0</TargetFramework>
-              <Nullable>enable</Nullable>
-              <ImplicitUsings>enable</ImplicitUsings>
-              <IsPackable>false</IsPackable>
-            </PropertyGroup>
-            <ItemGroup>
-              <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
-              <PackageReference Include="xunit" Version="2.9.3" />
-              <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
-              <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
-              <PackageReference Include="coverlet.collector" Version="6.0.4" />
-            </ItemGroup>
-            <ItemGroup>
-              <ProjectReference Include="../api/api.csproj" />
-            </ItemGroup>
-          </Project>
-          EOF
-          dotnet restore /tmp/p/test/test.csproj
-          dotnet build /tmp/p/test/test.csproj -c Release --no-restore >/dev/null
-          dotnet tool install -g dotnet-ef --version 10.0.11
-          # warm the implicit build packages (analyzers, ref packs) by creating & building a web template too
-          dotnet new webapi -o /tmp/p/tpl --no-restore >/dev/null && dotnet build /tmp/p/tpl -c Release >/dev/null || true
-          du -sh ~/.nuget/packages ~/.dotnet/tools
-      - name: pack
-        run: |
-          set -e
-          cd /tmp
-          curl -fsSL https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.400/dotnet-sdk-10.0.400-linux-x64.tar.gz -o sdk.tar.gz
-          tar -C ~/.nuget -czf nuget.tar.gz packages
-          tar -C ~/.dotnet -czf tools.tar.gz tools
-          sha256sum sdk.tar.gz nuget.tar.gz tools.tar.gz > sums.txt
-          split -b 45m -d sdk.tar.gz sdk.part.
-          split -b 45m -d nuget.tar.gz nuget.part.
-          cp tools.tar.gz tools.part.00
-          ls -la *.part.* sums.txt
-      - name: upload
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-        run: |
-          cd /tmp
-          cat > up.py <<'EOF'
-          import base64, json, sys, urllib.request, os, time
-          repo = os.environ["REPO"]; tok = os.environ["GH_TOKEN"]
-          out = []
-          for f in sorted(sys.argv[1:]):
-              data = open(f, "rb").read()
-              body = json.dumps({"content": base64.b64encode(data).decode(), "encoding": "base64"}).encode()
-              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/git/blobs", data=body, method="POST",
-                    headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json", "Content-Type": "application/json"})
-              for attempt in range(3):
-                  try:
-                      with urllib.request.urlopen(req, timeout=900) as r:
-                          sha = json.load(r)["sha"]
-                      out.append(f"{f}={sha}")
-                      break
-                  except Exception as e:
-                      msg = getattr(e, "read", lambda: b"")()[:200]
-                      print(f"{f}: attempt {attempt} failed: {e} {msg}", flush=True)
-                      time.sleep(5)
-              else:
-                  out.append(f"{f}=ERR")
-              print(out[-1], flush=True)
-          print("::notice title=blobs::" + " ".join(out))
-          EOF
-          python3 up.py *.part.*
-          echo "::notice title=sums::$(cat sums.txt | tr '\n' ' ')"
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import glob, xml.etree.ElementTree as ET
+          ns = {"t": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
+          total = passed = failed = 0
+          rows = []
+          for f in glob.glob("TestResults/**/*.trx", recursive=True):
+              root = ET.parse(f).getroot()
+              c = root.find("t:ResultSummary/t:Counters", ns)
+              if c is not None:
+                  total += int(c.get("total", 0)); passed += int(c.get("passed", 0)); failed += int(c.get("failed", 0))
+              for r in root.findall("t:Results/t:UnitTestResult", ns):
+                  if r.get("outcome") != "Passed":
+                      msg = r.find("t:Output/t:ErrorInfo/t:Message", ns)
+                      rows.append(f"- ❌ `{r.get('testName')}` — {(msg.text or '').strip()[:300] if msg is not None else ''}")
+          print(f"### Backend tests: {passed}/{total} passed" + (f", **{failed} failed**" if failed else " ✅"))
+          print("\n".join(rows))
+          PY
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/TestResults
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (Angular 22)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Format check
+        run: npm run lint
+
+      - name: Build (production)
+        run: npm run build -- --configuration production
+
+      - name: Unit tests
+        run: npm test -- --watch=false
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/frontend/browser

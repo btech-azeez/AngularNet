@@ -4,12 +4,7 @@
  */
 
 export type ElectionPhase =
-  | 'Scheduled'
-  | 'Nomination'
-  | 'Scrutiny'
-  | 'Polling'
-  | 'Counting'
-  | 'Declared';
+  'Scheduled' | 'Nomination' | 'Scrutiny' | 'Polling' | 'Counting' | 'Declared';
 
 export const ELECTION_PHASES: ElectionPhase[] = [
   'Scheduled',

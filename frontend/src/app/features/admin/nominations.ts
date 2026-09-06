@@ -18,7 +18,9 @@ type Filter = 'All' | NominationStatus;
     <header class="row between">
       <div>
         <h1>Nominations</h1>
-        <p class="muted">Scrutinise every nomination. Accepting allots the next ballot serial number.</p>
+        <p class="muted">
+          Scrutinise every nomination. Accepting allots the next ballot serial number.
+        </p>
       </div>
       @if (data.value(); as d) {
         <span class="badge" [class]="'badge ' + d.election.phase">{{ d.election.phase }}</span>
@@ -38,7 +40,12 @@ type Filter = 'All' | NominationStatus;
 
       <div class="row filters">
         @for (f of filters; track f) {
-          <button type="button" class="btn sm" [class.primary]="filter() === f" (click)="filter.set(f)">
+          <button
+            type="button"
+            class="btn sm"
+            [class.primary]="filter() === f"
+            (click)="filter.set(f)"
+          >
             {{ f }} <span class="count">{{ countFor(f) }}</span>
           </button>
         }
@@ -65,7 +72,9 @@ type Filter = 'All' | NominationStatus;
                 <tr>
                   <td>{{ c.serialNumber ?? '—' }}</td>
                   <td>
-                    <a [routerLink]="['/candidates', c.id]"><strong>{{ c.fullName }}</strong></a>
+                    <a [routerLink]="['/candidates', c.id]"
+                      ><strong>{{ c.fullName }}</strong></a
+                    >
                     <div class="muted small">{{ c.gender }}, {{ c.age }} · {{ c.occupation }}</div>
                   </td>
                   <td>{{ c.wardNumber }}</td>
@@ -79,10 +88,20 @@ type Filter = 'All' | NominationStatus;
                   </td>
                   <td class="actions">
                     @if (c.status === 'Pending' && canReview(d.election.phase)) {
-                      <button type="button" class="btn sm success" [disabled]="busy()" (click)="accept(c)">
+                      <button
+                        type="button"
+                        class="btn sm success"
+                        [disabled]="busy()"
+                        (click)="accept(c)"
+                      >
                         Accept
                       </button>
-                      <button type="button" class="btn sm danger" [disabled]="busy()" (click)="rejecting.set(c)">
+                      <button
+                        type="button"
+                        class="btn sm danger"
+                        [disabled]="busy()"
+                        (click)="rejecting.set(c)"
+                      >
                         Reject
                       </button>
                     }
@@ -99,16 +118,27 @@ type Filter = 'All' | NominationStatus;
         <div class="modal card" role="dialog" aria-modal="true">
           <h2>Reject nomination</h2>
           <p>
-            Rejecting <strong>{{ c.fullName }}</strong> ({{ c.symbol }}). Please record the reason — it is shown
-            to the candidate.
+            Rejecting <strong>{{ c.fullName }}</strong> ({{ c.symbol }}). Please record the reason —
+            it is shown to the candidate.
           </p>
           <div class="field">
             <label for="reason">Reason</label>
-            <textarea id="reason" [(ngModel)]="reason" placeholder="e.g. Under-age; not on the electoral roll; incomplete declaration"></textarea>
+            <textarea
+              id="reason"
+              [(ngModel)]="reason"
+              placeholder="e.g. Under-age; not on the electoral roll; incomplete declaration"
+            ></textarea>
           </div>
           <div class="row" style="justify-content: flex-end">
-            <button type="button" class="btn" (click)="rejecting.set(null)" [disabled]="busy()">Cancel</button>
-            <button type="button" class="btn danger" (click)="reject(c)" [disabled]="busy() || reason.trim().length < 5">
+            <button type="button" class="btn" (click)="rejecting.set(null)" [disabled]="busy()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn danger"
+              (click)="reject(c)"
+              [disabled]="busy() || reason.trim().length < 5"
+            >
               Reject nomination
             </button>
           </div>
@@ -161,11 +191,13 @@ export class Nominations {
 
   protected readonly data = rxResource({
     stream: () =>
-      this.api.getCurrentElection().pipe(
-        switchMap((election) =>
-          forkJoin({ election: of(election), candidates: this.api.getCandidates(election.id) }),
+      this.api
+        .getCurrentElection()
+        .pipe(
+          switchMap((election) =>
+            forkJoin({ election: of(election), candidates: this.api.getCandidates(election.id) }),
+          ),
         ),
-      ),
   });
 
   protected readonly visible = computed(() => {
@@ -195,10 +227,16 @@ export class Nominations {
     this.reason = '';
   }
 
-  private async review(c: Candidate, decision: 'Accepted' | 'Rejected', reason?: string): Promise<void> {
+  private async review(
+    c: Candidate,
+    decision: 'Accepted' | 'Rejected',
+    reason?: string,
+  ): Promise<void> {
     this.busy.set(true);
     try {
-      const updated = await firstValueFrom(this.api.reviewNomination(c.electionId, c.id, decision, reason));
+      const updated = await firstValueFrom(
+        this.api.reviewNomination(c.electionId, c.id, decision, reason),
+      );
       this.toast.success(
         decision === 'Accepted'
           ? `${updated.fullName} accepted — ballot serial no. ${updated.serialNumber}.`

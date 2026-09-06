@@ -58,7 +58,12 @@ type Mode = 'voter' | 'admin';
             </div>
 
             @if (!otpSent()) {
-              <button type="button" class="btn primary block" (click)="requestOtp()" [disabled]="busy() || !epic">
+              <button
+                type="button"
+                class="btn primary block"
+                (click)="requestOtp()"
+                [disabled]="busy() || !epic"
+              >
                 {{ busy() ? 'Sending…' : 'Send OTP' }}
               </button>
             } @else {
@@ -77,7 +82,8 @@ type Mode = 'voter' | 'admin';
                 />
                 @if (demoOtp()) {
                   <span class="hint">
-                    Demo mode — no SMS is sent. Your OTP is <strong>{{ demoOtp() }}</strong>.
+                    Demo mode — no SMS is sent. Your OTP is <strong>{{ demoOtp() }}</strong
+                    >.
                   </span>
                 }
               </div>
@@ -98,7 +104,13 @@ type Mode = 'voter' | 'admin';
           <form (ngSubmit)="adminLogin()" #a="ngForm" novalidate>
             <div class="field">
               <label for="username">Username</label>
-              <input id="username" name="username" [(ngModel)]="username" required autocomplete="username" />
+              <input
+                id="username"
+                name="username"
+                [(ngModel)]="username"
+                required
+                autocomplete="username"
+              />
             </div>
             <div class="field">
               <label for="password">Password</label>
@@ -124,7 +136,9 @@ type Mode = 'voter' | 'admin';
 
       <aside class="card flat demo">
         <h3>Demo credentials</h3>
-        <p class="small muted">The database is seeded with sample data so you can explore every role.</p>
+        <p class="small muted">
+          The database is seeded with sample data so you can explore every role.
+        </p>
         <table class="table small">
           <tbody>
             <tr>
@@ -142,8 +156,8 @@ type Mode = 'voter' | 'admin';
           </tbody>
         </table>
         <p class="small muted" style="margin: 0.5rem 0 0">
-          Voter OTPs are shown on screen in demo mode. The admin console also has a “Voters” page listing
-          every EPIC number.
+          Voter OTPs are shown on screen in demo mode. The admin console also has a “Voters” page
+          listing every EPIC number.
         </p>
       </aside>
     </div>
@@ -267,7 +281,10 @@ export class Login {
     this.busy.set(true);
     this.error.set(null);
     try {
-      const user = await this.auth.loginAdmin({ username: this.username.trim(), password: this.password });
+      const user = await this.auth.loginAdmin({
+        username: this.username.trim(),
+        password: this.password,
+      });
       this.toast.success(`Signed in as ${user.name}`);
       await this.router.navigateByUrl(this.returnUrl() || '/admin');
     } catch (e) {

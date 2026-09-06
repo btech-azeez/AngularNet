@@ -23,7 +23,9 @@ import { apiErrorMessage } from '../../core/utils/api-error';
         <div class="row">
           @if (isLive()) {
             <span class="badge red live">● LIVE</span>
-            <span class="muted small">Auto-refreshing every 5s · Updated {{ lastUpdated() | date: 'h:mm:ss a' }}</span>
+            <span class="muted small"
+              >Auto-refreshing every 5s · Updated {{ lastUpdated() | date: 'h:mm:ss a' }}</span
+            >
           }
           <span class="badge" [class]="'badge ' + r.phase">{{ r.phase }}</span>
         </div>
@@ -54,8 +56,9 @@ import { apiErrorMessage } from '../../core/utils/api-error';
             <h2>Polling is under way 🗳️</h2>
             <p class="muted">
               Vote counts are sealed until polls close. Turnout so far:
-              <strong>{{ r.votesCast | number }}</strong> of {{ r.totalVoters | number }} voters
-              ({{ r.turnoutPercent | number: '1.1-1' }}%).
+              <strong>{{ r.votesCast | number }}</strong> of {{ r.totalVoters | number }} voters ({{
+                r.turnoutPercent | number: '1.1-1'
+              }}%).
             </p>
             <div class="bar green" style="max-width: 480px; margin: 0.5rem auto 1rem">
               <span [style.width.%]="r.turnoutPercent"></span>
@@ -122,7 +125,9 @@ import { apiErrorMessage } from '../../core/utils/api-error';
                       <td>
                         <strong>{{ c.rank }}</strong>
                         @if (c.isWinner) {
-                          <span class="badge green">{{ r.phase === 'Declared' ? 'WON' : 'LEADING' }}</span>
+                          <span class="badge green">{{
+                            r.phase === 'Declared' ? 'WON' : 'LEADING'
+                          }}</span>
                         }
                       </td>
                       <td>
@@ -130,7 +135,9 @@ import { apiErrorMessage } from '../../core/utils/api-error';
                         <div class="muted small">Ward {{ c.wardNumber }}</div>
                       </td>
                       <td>{{ c.symbolEmoji }} {{ c.symbol }}</td>
-                      <td class="num"><strong>{{ c.votes | number }}</strong></td>
+                      <td class="num">
+                        <strong>{{ c.votes | number }}</strong>
+                      </td>
                       <td>
                         <div class="row" style="gap: 0.5rem">
                           <div class="bar" [class.green]="c.isWinner" style="flex: 1">
@@ -150,7 +157,9 @@ import { apiErrorMessage } from '../../core/utils/api-error';
                     <td class="num">{{ r.nota | number }}</td>
                     <td>
                       <div class="row" style="gap: 0.5rem">
-                        <div class="bar" style="flex: 1"><span [style.width.%]="notaPercent()"></span></div>
+                        <div class="bar" style="flex: 1">
+                          <span [style.width.%]="notaPercent()"></span>
+                        </div>
                         <span class="small" style="width: 3.5rem; text-align: right">
                           {{ notaPercent() | number: '1.1-1' }}%
                         </span>
@@ -247,8 +256,7 @@ export class Results {
   protected readonly lastUpdated = signal(new Date());
 
   protected readonly results = rxResource({
-    stream: () =>
-      this.api.getCurrentElection().pipe(switchMap((e) => this.api.getResults(e.id))),
+    stream: () => this.api.getCurrentElection().pipe(switchMap((e) => this.api.getResults(e.id))),
   });
 
   protected readonly isLive = computed(() => this.results.value()?.phase === 'Counting');

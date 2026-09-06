@@ -3,13 +3,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  AdminLoginRequest,
-  AuthResponse,
-  AuthUser,
-  UserRole,
-  VoterLoginRequest,
-} from '../models';
+import { AdminLoginRequest, AuthResponse, AuthUser, UserRole, VoterLoginRequest } from '../models';
 
 const STORAGE_KEY = 'gp-election.session';
 

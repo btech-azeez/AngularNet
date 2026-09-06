@@ -15,12 +15,14 @@ export const routes: Routes = [
   {
     path: 'candidates',
     title: 'Candidates',
-    loadComponent: () => import('./features/candidates/candidate-list').then((m) => m.CandidateList),
+    loadComponent: () =>
+      import('./features/candidates/candidate-list').then((m) => m.CandidateList),
   },
   {
     path: 'candidates/nominate',
     title: 'File nomination',
-    loadComponent: () => import('./features/candidates/nomination-form').then((m) => m.NominationForm),
+    loadComponent: () =>
+      import('./features/candidates/nomination-form').then((m) => m.NominationForm),
   },
   {
     path: 'candidates/:id',

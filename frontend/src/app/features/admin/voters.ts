@@ -14,7 +14,9 @@ import { apiErrorMessage } from '../../core/utils/api-error';
     <header class="row between">
       <div>
         <h1>Voter roll</h1>
-        <p class="muted">Electoral roll for the current election. Voters sign in with their EPIC number.</p>
+        <p class="muted">
+          Electoral roll for the current election. Voters sign in with their EPIC number.
+        </p>
       </div>
       <button type="button" class="btn primary sm" (click)="adding.set(!adding())">
         {{ adding() ? 'Close' : '+ Add voter' }}
@@ -29,7 +31,15 @@ import { apiErrorMessage } from '../../core/utils/api-error';
         </div>
         <div class="field">
           <label for="v-age">Age</label>
-          <input id="v-age" name="age" type="number" [(ngModel)]="draft.age" required min="18" max="120" />
+          <input
+            id="v-age"
+            name="age"
+            type="number"
+            [(ngModel)]="draft.age"
+            required
+            min="18"
+            max="120"
+          />
         </div>
         <div class="field">
           <label for="v-gender">Gender</label>
@@ -53,7 +63,14 @@ import { apiErrorMessage } from '../../core/utils/api-error';
         </div>
         <div class="field">
           <label for="v-mobile">Mobile</label>
-          <input id="v-mobile" name="mobile" [(ngModel)]="draft.mobile" required pattern="[6-9][0-9]{9}" placeholder="10 digits" />
+          <input
+            id="v-mobile"
+            name="mobile"
+            [(ngModel)]="draft.mobile"
+            required
+            pattern="[6-9][0-9]{9}"
+            placeholder="10 digits"
+          />
         </div>
         <div class="field" style="justify-content: flex-end">
           <button type="submit" class="btn success" [disabled]="busy() || f.invalid">
@@ -104,8 +121,12 @@ import { apiErrorMessage } from '../../core/utils/api-error';
           <tbody>
             @for (v of p.items; track v.id) {
               <tr>
-                <td><code>{{ v.epicNumber }}</code></td>
-                <td><strong>{{ v.fullName }}</strong></td>
+                <td>
+                  <code>{{ v.epicNumber }}</code>
+                </td>
+                <td>
+                  <strong>{{ v.fullName }}</strong>
+                </td>
                 <td>{{ v.age }} / {{ v.gender.charAt(0) }}</td>
                 <td>{{ v.wardNumber }}</td>
                 <td>{{ v.houseNumber }}</td>
@@ -130,8 +151,22 @@ import { apiErrorMessage } from '../../core/utils/api-error';
       <div class="row between">
         <span class="muted small">Page {{ p.page }} of {{ totalPages() }}</span>
         <div class="row">
-          <button type="button" class="btn sm" [disabled]="p.page <= 1" (click)="pageNo.set(p.page - 1)">← Prev</button>
-          <button type="button" class="btn sm" [disabled]="p.page >= totalPages()" (click)="pageNo.set(p.page + 1)">Next →</button>
+          <button
+            type="button"
+            class="btn sm"
+            [disabled]="p.page <= 1"
+            (click)="pageNo.set(p.page - 1)"
+          >
+            ← Prev
+          </button>
+          <button
+            type="button"
+            class="btn sm"
+            [disabled]="p.page >= totalPages()"
+            (click)="pageNo.set(p.page + 1)"
+          >
+            Next →
+          </button>
         </div>
       </div>
     }
@@ -155,7 +190,14 @@ export class Voters {
   protected readonly adding = signal(false);
   protected readonly busy = signal(false);
 
-  protected draft = { fullName: '', age: 18, gender: 'Female', wardId: 0, houseNumber: '', mobile: '' };
+  protected draft = {
+    fullName: '',
+    age: 18,
+    gender: 'Female',
+    wardId: 0,
+    houseNumber: '',
+    mobile: '',
+  };
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly meta = rxResource({
@@ -201,9 +243,18 @@ export class Voters {
     if (!this.draft.wardId) this.draft.wardId = this.meta.value()?.wards[0]?.id ?? 0;
     this.busy.set(true);
     try {
-      const v = await firstValueFrom(this.api.addVoter(election.id, { ...this.draft, age: Number(this.draft.age) }));
+      const v = await firstValueFrom(
+        this.api.addVoter(election.id, { ...this.draft, age: Number(this.draft.age) }),
+      );
       this.toast.success(`${v.fullName} added — EPIC ${v.epicNumber}`);
-      this.draft = { fullName: '', age: 18, gender: 'Female', wardId: this.draft.wardId, houseNumber: '', mobile: '' };
+      this.draft = {
+        fullName: '',
+        age: 18,
+        gender: 'Female',
+        wardId: this.draft.wardId,
+        houseNumber: '',
+        mobile: '',
+      };
       this.adding.set(false);
       this.page.reload();
       this.meta.reload();

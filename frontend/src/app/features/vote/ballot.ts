@@ -29,11 +29,15 @@ export const NOTA_ID = 0;
           <p class="muted">{{ r.message }}</p>
           <dl>
             <dt>Receipt number</dt>
-            <dd><code>{{ r.receiptNumber }}</code></dd>
+            <dd>
+              <code>{{ r.receiptNumber }}</code>
+            </dd>
             <dt>Time</dt>
             <dd>{{ r.castAt | date: 'd MMM y, h:mm:ss a' }}</dd>
             <dt>Voter</dt>
-            <dd>{{ d.voter.fullName }} · {{ d.voter.epicNumber }} · Ward {{ d.voter.wardNumber }}</dd>
+            <dd>
+              {{ d.voter.fullName }} · {{ d.voter.epicNumber }} · Ward {{ d.voter.wardNumber }}
+            </dd>
           </dl>
           <p class="small muted">
             Your ballot is secret — the receipt proves that you voted, not whom you voted for.
@@ -60,8 +64,9 @@ export const NOTA_ID = 0;
         <section class="card empty">
           <h2>Polling is not open</h2>
           <p class="muted">
-            The election is currently in the <strong>{{ d.election.phase }}</strong> phase. Voting is only
-            possible on polling day between {{ d.election.pollingStartsAt }} and {{ d.election.pollingEndsAt }}.
+            The election is currently in the <strong>{{ d.election.phase }}</strong> phase. Voting
+            is only possible on polling day between {{ d.election.pollingStartsAt }} and
+            {{ d.election.pollingEndsAt }}.
           </p>
           <a routerLink="/" class="btn">Back to home</a>
         </section>
@@ -76,8 +81,9 @@ export const NOTA_ID = 0;
               {{ d.voter.wardNumber }}
             </p>
             <div class="alert info">
-              Select <strong>one</strong> candidate (or NOTA), then press <strong>Cast vote</strong>. You will be
-              asked to confirm. Once cast, a vote cannot be changed.
+              Select <strong>one</strong> candidate (or NOTA), then press
+              <strong>Cast vote</strong>. You will be asked to confirm. Once cast, a vote cannot be
+              changed.
             </div>
           </header>
 
@@ -96,7 +102,9 @@ export const NOTA_ID = 0;
                   <span class="sl">{{ c.serialNumber }}</span>
                   <span class="who">
                     <strong>{{ c.fullName }}</strong>
-                    <small>{{ c.fatherOrSpouseName }} · Ward {{ c.wardNumber }} · {{ c.symbol }}</small>
+                    <small
+                      >{{ c.fatherOrSpouseName }} · Ward {{ c.wardNumber }} · {{ c.symbol }}</small
+                    >
                   </span>
                   <span class="sym">{{ c.symbolEmoji }}</span>
                   <span class="mark" aria-hidden="true">{{ selected() === c.id ? '✔' : '' }}</span>

@@ -8,13 +8,17 @@ import { Candidate } from '../../core/models';
   template: `
     <article class="card cand" [class.rejected]="candidate().status === 'Rejected'">
       <div class="row between top">
-        <div class="symbol" [attr.aria-label]="candidate().symbol">{{ candidate().symbolEmoji }}</div>
+        <div class="symbol" [attr.aria-label]="candidate().symbol">
+          {{ candidate().symbolEmoji }}
+        </div>
         <div class="right">
           @if (candidate().serialNumber; as sn) {
             <span class="badge saffron">Sl. No. {{ sn }}</span>
           }
           @if (showStatus()) {
-            <span class="badge" [class]="'badge ' + candidate().status">{{ candidate().status }}</span>
+            <span class="badge" [class]="'badge ' + candidate().status">{{
+              candidate().status
+            }}</span>
           }
         </div>
       </div>
@@ -22,7 +26,8 @@ import { Candidate } from '../../core/models';
         <a [routerLink]="['/candidates', candidate().id]">{{ candidate().fullName }}</a>
       </h3>
       <p class="muted small" style="margin: 0 0 0.25rem">
-        {{ candidate().gender }}, {{ candidate().age }} · S/o, D/o, W/o {{ candidate().fatherOrSpouseName }}
+        {{ candidate().gender }}, {{ candidate().age }} · S/o, D/o, W/o
+        {{ candidate().fatherOrSpouseName }}
       </p>
       <p class="muted small">
         Symbol: <strong>{{ candidate().symbol }}</strong> · Ward {{ candidate().wardNumber }} ·

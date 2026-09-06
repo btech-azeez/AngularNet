@@ -19,7 +19,9 @@ import { ToastHost } from './shared/toast-host';
         </a>
 
         <nav class="nav" aria-label="Main">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            >Home</a
+          >
           <a routerLink="/candidates" routerLinkActive="active">Candidates</a>
           <a routerLink="/results" routerLinkActive="active">Results</a>
           @if (auth.isVoter()) {
@@ -34,7 +36,12 @@ import { ToastHost } from './shared/toast-host';
           @if (auth.user(); as u) {
             <span class="who">
               <strong>{{ u.name }}</strong>
-              <small>{{ u.role }}@if (u.wardNumber) { · Ward {{ u.wardNumber }} }</small>
+              <small
+                >{{ u.role }}
+                @if (u.wardNumber) {
+                  · Ward {{ u.wardNumber }}
+                }
+              </small>
             </span>
             <button type="button" class="btn sm" (click)="auth.logout()">Sign out</button>
           } @else {
@@ -50,7 +57,9 @@ import { ToastHost } from './shared/toast-host';
 
     <footer class="footer">
       <div class="container row between">
-        <span class="muted small">Demo application — Angular 22 · ASP.NET Core 10 · SQL Server</span>
+        <span class="muted small"
+          >Demo application — Angular 22 · ASP.NET Core 10 · SQL Server</span
+        >
         <span class="muted small">Built for the Gram Panchayat Sarpanch election workflow</span>
       </div>
     </footer>

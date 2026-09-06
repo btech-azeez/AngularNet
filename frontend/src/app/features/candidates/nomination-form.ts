@@ -39,12 +39,14 @@ export const SYMBOLS: { name: string; emoji: string }[] = [
         @if (meta.value(); as m) {
           @if (m.election.phase !== 'Nomination') {
             <div class="alert warn">
-              Nominations are not open right now (current phase: <strong>{{ m.election.phase }}</strong>).
+              Nominations are not open right now (current phase:
+              <strong>{{ m.election.phase }}</strong
+              >).
             </div>
           } @else {
             <p class="muted">
-              Nominations close on <strong>{{ m.election.nominationEndsOn.slice(0, 10) }}</strong>. All
-              fields are mandatory. The Returning Officer will scrutinise your application.
+              Nominations close on <strong>{{ m.election.nominationEndsOn.slice(0, 10) }}</strong
+              >. All fields are mandatory. The Returning Officer will scrutinise your application.
             </p>
           }
 
@@ -98,14 +100,22 @@ export const SYMBOLS: { name: string; emoji: string }[] = [
               </div>
               <div class="field">
                 <label for="education">Education</label>
-                <input id="education" formControlName="education" placeholder="e.g. B.A., SSC, Intermediate" />
+                <input
+                  id="education"
+                  formControlName="education"
+                  placeholder="e.g. B.A., SSC, Intermediate"
+                />
                 @if (invalid('education')) {
                   <span class="err">Required.</span>
                 }
               </div>
               <div class="field">
                 <label for="occupation">Occupation</label>
-                <input id="occupation" formControlName="occupation" placeholder="e.g. Farmer, Teacher" />
+                <input
+                  id="occupation"
+                  formControlName="occupation"
+                  placeholder="e.g. Farmer, Teacher"
+                />
                 @if (invalid('occupation')) {
                   <span class="err">Required.</span>
                 }
@@ -143,7 +153,9 @@ export const SYMBOLS: { name: string; emoji: string }[] = [
                 formControlName="manifesto"
                 placeholder="What will you do for the village in the next 5 years?"
               ></textarea>
-              <span class="hint">{{ form.value.manifesto?.length || 0 }}/1000 characters (min 30).</span>
+              <span class="hint"
+                >{{ form.value.manifesto?.length || 0 }}/1000 characters (min 30).</span
+              >
               @if (invalid('manifesto')) {
                 <span class="err">Write at least 30 characters.</span>
               }
@@ -152,8 +164,8 @@ export const SYMBOLS: { name: string; emoji: string }[] = [
             <label class="declare">
               <input type="checkbox" formControlName="declaration" style="width: auto" />
               <span>
-                I solemnly declare that I am an elector of this Gram Panchayat, I am not disqualified under
-                the Panchayat Raj Act, and the particulars given above are true.
+                I solemnly declare that I am an elector of this Gram Panchayat, I am not
+                disqualified under the Panchayat Raj Act, and the particulars given above are true.
               </span>
             </label>
 
@@ -272,7 +284,11 @@ export class NominationForm {
       const election = await firstValueFrom(this.api.getCurrentElection());
       const cands = await firstValueFrom(this.api.getCandidates(election.id));
       this.taken.set(
-        new Set(cands.filter((c) => c.status !== 'Rejected' && c.status !== 'Withdrawn').map((c) => c.symbol)),
+        new Set(
+          cands
+            .filter((c) => c.status !== 'Rejected' && c.status !== 'Withdrawn')
+            .map((c) => c.symbol),
+        ),
       );
     } catch {
       /* non-fatal — the API will still reject duplicates */

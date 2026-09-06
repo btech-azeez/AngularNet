@@ -222,7 +222,8 @@ export class Dashboard {
       case 'Scrutiny':
         if (d.pendingNominations > 0)
           return `${d.pendingNominations} nomination(s) still await scrutiny. Accept or reject them before opening polling.`;
-        if (d.acceptedCandidates < 1) return 'At least one accepted candidate is required to open polling.';
+        if (d.acceptedCandidates < 1)
+          return 'At least one accepted candidate is required to open polling.';
         return null;
       case 'Nomination':
         if (d.acceptedCandidates + d.pendingNominations === 0)
@@ -274,7 +275,11 @@ export class Dashboard {
   }
 
   protected async declare(): Promise<void> {
-    if (!confirm('Declare the result now? The leading candidate will be recorded as the elected Sarpanch.'))
+    if (
+      !confirm(
+        'Declare the result now? The leading candidate will be recorded as the elected Sarpanch.',
+      )
+    )
       return;
     await this.run(async () => {
       const e = await firstValueFrom(this.api.declareResults(this.dash.value()!.election.id));
@@ -283,7 +288,8 @@ export class Dashboard {
   }
 
   protected async resetDemo(): Promise<void> {
-    if (!confirm('Reset ALL demo data? Every nomination and vote will be recreated from the seed.')) return;
+    if (!confirm('Reset ALL demo data? Every nomination and vote will be recreated from the seed.'))
+      return;
     await this.run(async () => {
       const r = await firstValueFrom(this.api.resetDemo());
       this.toast.success(r.message);
