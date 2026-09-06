@@ -40,7 +40,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY' 2> >(tee /dev/stderr) >> "$GITHUB_STEP_SUMMARY"
           import glob, xml.etree.ElementTree as ET
           ns = {"t": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
           total = passed = failed = 0
@@ -56,6 +56,18 @@ jobs:
                       rows.append(f"- ❌ `{r.get('testName')}` — {(msg.text or '').strip()[:300] if msg is not None else ''}")
           print(f"### Backend tests: {passed}/{total} passed" + (f", **{failed} failed**" if failed else " ✅"))
           print("\n".join(rows))
+          # Also surface failures as workflow annotations (visible in the Checks API).
+          import sys
+          def esc(s): return s.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          sys.stderr.write(f"::notice title=backend-tests::{passed}/{total} passed, {failed} failed\n")
+          for f in glob.glob("TestResults/**/*.trx", recursive=True):
+              root = ET.parse(f).getroot()
+              for r in root.findall("t:Results/t:UnitTestResult", ns):
+                  if r.get("outcome") != "Passed":
+                      msg = r.find("t:Output/t:ErrorInfo/t:Message", ns)
+                      st = r.find("t:Output/t:ErrorInfo/t:StackTrace", ns)
+                      text = ((msg.text or "") if msg is not None else "") + "\n" + ((st.text or "")[:1200] if st is not None else "")
+                      sys.stderr.write(f"::error title={r.get('testName')[:120]}::{esc(text[:3800])}\n")
           PY
 
       - name: Upload test results
